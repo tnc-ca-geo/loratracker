@@ -246,3 +246,4 @@ $RECYCLE.BIN/
 # Etc. by Falk
 set_local_vars.sh
 credstash.log
+*.orig
