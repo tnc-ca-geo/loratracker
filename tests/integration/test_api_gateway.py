@@ -24,50 +24,49 @@ class TestApiGateway(TestCase):
         return stack_name
 
     @classmethod
-    def get_value_from_stack(cls, response, key):
+    def get_first_value_from_stack(cls, stack_name, key):
         """
         Retrieve a value by key from the stack response.
         """
-        pass
+        client = boto3.client('cloudformation')
+        try:
+            response = client.describe_stacks(StackName=stack_name)
+        except Exception as e:
+            raise Exception(
+                f'Cannot find stack {stack_name}.\n'
+                f'Please make sure stack with the name'
+                f' "{stack_name}" exists.') from e
+        stack_outputs = response['Stacks'][0]['Outputs']
+        outputs = [otp for otp in stack_outputs if otp['OutputKey'] == key]
+        return outputs[0]['OutputValue'] if outputs else None
 
     def setUp(self) -> None:
         """
         Based on the provided env variable AWS_SAM_STACK_NAME,
         here we use cloudformation API to find out what the
-        iot-stack URL is
+        iot-stack URL and the API key is.
         """
         stack_name = TestApiGateway.get_stack_name()
-        client = boto3.client("cloudformation")
-        try:
-            response = client.describe_stacks(StackName=stack_name)
-        except Exception as e:
-            raise Exception(
-                f"Cannot find stack {stack_name}. \n"
-                f'Please make sure stack with the name'
-                f' "{stack_name}" exists.'
-            ) from e
-        stacks = response["Stacks"]
-        stack_outputs = stacks[0]["Outputs"]
-        print(stack_outputs)
-        api_outputs = [
-            output for output in stack_outputs
-            if output["OutputKey"] == "IoTApi"]
-        self.assertTrue(
-            api_outputs,
-            f"Cannot find output IoTApi in stack {stack_name}")
-        self.api_endpoint = api_outputs[0]["OutputValue"]
-        api_ids = [
-            output for output in stack_outputs
-            if output["OutputKey"] == "IoTApiResource"]
+        self.api_endpoint = self.get_first_value_from_stack(
+            stack_name, 'IoTApi')
+        api_id = self.get_first_value_from_stack(stack_name, 'IoTApiId')
+        stage_name = self.get_first_value_from_stack(stack_name, 'StageName')
         client = boto3.client('apigateway')
-        api_id = restApiId=api_ids[0]['OutputValue']
-        print(api_id)
-        print(client.get_api_keys(includeValues=True))
+        keys = client.get_api_keys(includeValues=True).get('items', [])
+        stage_key = '{}/{}'.format(api_id, stage_name)
+        for item in keys:
+            if stage_key in item.get('stageKeys', []):
+                self.key = item.get('value')
 
     def test_api_gateway(self):
         """
         Call the API Gateway endpoint and check the response
         """
-        response = requests.get(self.api_endpoint)
+        # test unauthorized request
+        response = requests.post(self.api_endpoint)
+        self.assertEqual(response.status_code, 403)
+        response = requests.post(
+            self.api_endpoint, headers={'x-api-key': self.key})
+        self.assertEqual(response.status_code, 200)
         self.assertDictEqual(
-            response.json(), {"message": "hello world"})
+            response.json(), {'message': 'hello world'})

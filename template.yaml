@@ -61,13 +61,13 @@ Outputs:
   # Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  Stage:
+  StageName:
     Description: "Stage name"
     Value: !Ref StageName
   IoTApi:
     Description: "API Gateway endpoint URL"
     Value: !Sub "https://${IoTAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/hook/"
-  IoTApiResource:
+  IoTApiId:
     Description: "ID of the Webhook API"
     Value: !Ref IoTAPI
   WebHookFunction:
