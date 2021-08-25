@@ -1,0 +1,4 @@
+export AWS_DEFAULT_REGION=us-west-1
+export AWS_SAM_STACK_NAME=iot-stack
+export AWS_ACCESS_KEY_ID=$(aws-vault exec falk -- credstash get AWS_FALK_ADMIN_ACCESS_KEY_ID)
+export AWS_SECRET_ACCESS_KEY=$(aws-vault exec falk -- credstash get AWS_FALK_ADMIN_SECRET_ACCESS_KEY)

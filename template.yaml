@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  SAM Template for Lambda-based IoT app
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  StageName:
+    Type: String
+    Default: dev
+
+Resources:
+
+  IoTAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Quota:
+            Limit: 86400
+            Period: DAY
+          Throttle:
+            BurstLimit: 100
+            RateLimit: 50
+          Tags:
+            - Key: stack
+              Value: !Ref AWS::StackName
+      StageName: !Ref StageName
+      Tags:
+        stack: !Ref AWS::StackName
+
+  WebhookFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: webhook/
+      Description: An API to store IoT data
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Events:
+        NewData:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /hook
+            RestApiId: !Ref IoTAPI
+            Auth:
+              ApiKeyRequired: true
+      Tags:
+        stack: !Ref AWS::StackName
+
+Outputs:
+  # ATTENTION: The working of the integration tests depends on these values
+  # ServerlessRestApi is an implicit API created out of Events key under
+  # Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  Stage:
+    Description: "Stage name"
+    Value: !Ref StageName
+  IoTApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${IoTAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/hook/"
+  IoTApiResource:
+    Description: "ID of the Webhook API"
+    Value: !Ref IoTAPI
+  WebHookFunction:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt WebhookFunction.Arn
+  WebHookFunctionIamRole:
+    Description: "Implicit IAM Role created for Webhook function"
+    Value: !GetAtt WebhookFunctionRole.Arn
