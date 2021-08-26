@@ -1,9 +1,12 @@
 # standard library
+import json
 import os
 from unittest import TestCase
 # third party
 import boto3
 import requests
+# testing
+from tests.example_data import lorawan_webhook_example
 
 """
 Make sure env variable AWS_SAM_STACK_NAME exists with the name of the stack
@@ -65,8 +68,10 @@ class TestApiGateway(TestCase):
         # test unauthorized request
         response = requests.post(self.api_endpoint)
         self.assertEqual(response.status_code, 403)
+        # test valid request
         response = requests.post(
-            self.api_endpoint, headers={'x-api-key': self.key})
+            self.api_endpoint, headers={'x-api-key': self.key},
+            data=lorawan_webhook_example.get('body'))
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(
-            response.json(), {'message': 'hello world'})
+            response.json(), {'message': 'ok'})

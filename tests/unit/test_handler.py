@@ -1,10 +1,17 @@
 # standard library
 import json
+import os
+import sys
 # third party
 import pytest
 # testing
-from tests.unit.example_data import lorawan_webhook_example
+from tests.example_data import lorawan_webhook_example
 # project
+# Make sure that the webhook directory is on the path for testing, this is
+# necessary in order not to put the test code on AWS LAMBDA
+sys.path.insert(
+    0, os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', '..', 'webhook')))
 from webhook import app
 
 
