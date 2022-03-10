@@ -35,6 +35,7 @@ Resources:
           Tags:
             - Key: stack
               Value: !Ref AWS::StackName
+      Description: Provides webhook for asset trackers to AGO
       StageName: !Ref StageName
       Tags:
         stack: !Ref AWS::StackName
@@ -48,7 +49,7 @@ Resources:
         Variables:
           AGO_CLIENT_SECRET: !Ref AgoClientSecret
       Handler: app.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       Events:
         NewData:
           Type: Api

@@ -9,3 +9,4 @@ region = "us-west-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 parameter_overrides = "StageName=\"dev\" AgoClientSecret=\"0cf34ae30ae94554a097c2f469cdb425\""
+image_repositories = []
