@@ -8,12 +8,37 @@ import re
 import time
 # third party
 from dateutil import tz
+# project
+import decoders
 
 # doing this only california for now, make sure that the same entries exist
 # in the Lambda environment
 from_tz = tz.gettz('UTC')
 to_tz = tz.gettz('America/Los_Angeles')
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+def decode_test_n_ranging(payload):
+    """
+    Decoder for the test_n_ranging app.
+    """
+    return payload
+
+
+# check whether a device specific decoder exist
+DEVICE_MATRIX = {
+    'feather-ranger-f3c3': decoders.feather_ranger_f3c3
+}
+
+
+# check whether an application_specific_decoder exist
+APPLICATION_MATRIX = {}
+
+
+# device labels`
+DEVICE_LABELS = {
+    'feather-ranger-f3c3': 'The NO device',
+}
 
 
 def gps_validate(transformed_message):
