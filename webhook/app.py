@@ -21,9 +21,8 @@ def lambda_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
     feature = extract.extract_feature(event)
-    print('FEATURE', feature)
-    if extract.gps_validate(feature):
+    if feature:
         service = ago.FeatureService()
         service.post_records([feature])
         return {"statusCode": 200, "body": json.dumps({"message": "ok"})}
-    return {"statusCode": 400, "body": json.dumps({"message": "invalid GPS fix"})}
+    return {"statusCode": 200, "body": json.dumps({"message": "invalid GPS fix"})}

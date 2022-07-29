@@ -9,20 +9,13 @@ import time
 # third party
 from dateutil import tz
 # project
-import decoders
+from src import decoders
 
 # doing this only california for now, make sure that the same entries exist
 # in the Lambda environment
 from_tz = tz.gettz('UTC')
 to_tz = tz.gettz('America/Los_Angeles')
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-
-
-def decode_test_n_ranging(payload):
-    """
-    Decoder for the test_n_ranging app.
-    """
-    return payload
 
 
 # check whether a device specific decoder exist
@@ -32,13 +25,31 @@ DEVICE_MATRIX = {
 
 
 # check whether an application_specific_decoder exist
-APPLICATION_MATRIX = {}
+APPLICATION_MATRIX = {
+    'test-n-ranging': decoders.oyster,
+    'adeunis-tester': decoders.adeunis,
+    'miromico-cargo': decoders.miromico_cargo,
+    'miromico-asset-test': decoders.miromico_cargo
+}
 
 
 # device labels`
 DEVICE_LABELS = {
-    'feather-ranger-f3c3': 'The NO device',
+    'adeunis-ftd-239db': 'CTS&E Loaner Field tester',
+    'adeunis-ftd-23754': 'Marks Adeunis FTD',
+    'feather-ranger-f3c3': 'The NO device (Falk)',
+    'jldp-oyster-c7a0': 'Blue Kawasaki OHV (JLDP)',
+    'jldp-oyster-c7a8': 'Green Honda OHV (JLDP)',
+    'oyster-005d93': 'Blue Toyoto 4runner (SCI)',
+    'tnc-adeunis-ftd-0235a1': 'The French Connection (JLDP)'
 }
+
+
+def empty_decoder(payload):
+    """
+    Use this if not decocer found
+    """
+    return {}
 
 
 def gps_validate(transformed_message):
@@ -81,10 +92,9 @@ def get_gateways(dic):
         list of tuples containing gateway id and rssi
     """
     rx_metadata = dic.get('rx_metadata', [])
-    gateways = [
-        (
-            item.get('gateway_ids', {}).get('gateway_id'),
-            item.get('snr'), item.get('rssi'))
+    gateways = [(
+        item.get('gateway_ids', {}).get('gateway_id'),
+        item.get('snr'), item.get('rssi'))
         for item in rx_metadata]
     gateways.sort(key=lambda x: -x[-1])
     return gateways
@@ -105,16 +115,26 @@ def extract_feature(event):
     except (json.decoder.JSONDecodeError, TypeError) as e:
         return {}
     uplink_message = dic.get('uplink_message', {})
-    decoded = uplink_message.pop('decoded_payload', {})
+    application = dic.get(
+        'end_device_ids', {}).get('application_ids', {}).get('application_id')
+    device = dic.get('end_device_ids', {}).get('device_id')
+    decoder_function = DEVICE_MATRIX.get(
+        device) or APPLICATION_MATRIX.get(application) or empty_decoder
+    try:
+        decoded = decoder_function(
+            uplink_message.get('frm_payload'), uplink_message.get('f_port', 0))
+    except (ValueError, IndexError):
+        return {}
+    if decoded.get('status') != 'ok':
+        return {}
     gateways = get_gateways(uplink_message)
     settings = uplink_message.pop('settings', {})
-    geometry = {
-        'x': decoded.pop('longitudeDeg'),
-        'y': decoded.pop('latitudeDeg'),
+    label = DEVICE_LABELS.get(device) or device
+    geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
         'spatialReference': {'wkid': 4326}}
     attributes = {
         'received_t': transform_time(uplink_message.get('received_at')),
-        'time': decoded.get('time'),
+        'time': datetime.strftime(decoded.get('time'), '%Y-%m-%d %H:%M:%S'),
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': dic.get('end_device_ids', {}).get('device_id'),
@@ -129,6 +149,5 @@ def extract_feature(event):
             re.sub(r'[^0-9.]', '',
             uplink_message.get('consumed_airtime', '0'))) * 1E+3),
         'gtw_count': len(gateways)}
-    # print(attributes)
     return {
-        "geometry": geometry, 'attributes': attributes}
+        'geometry': geometry, 'attributes': attributes}
