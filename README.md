@@ -1,4 +1,7 @@
 # Lora Tracking using AWS
+
+The goal of this project is to create a geographical enabled dashboard prototype for sensors and assets in ArcGIS online before we hand it off to contractor. 
+
 **iot-aws-app**
 
 This application implements a webhook in AWS that sends coordinates from LoRaWAN-based trackers to ArcGIS online. It replaces in part a workflow implemented in https://github.com/tnc-ca-geo/LoraTesting and is superior because of
@@ -30,3 +33,7 @@ In the interactive process of deployment a valid ArcGIS online secret needs to b
 Beside an AWS account, a ArcGIS online account is needed. Within this account, a feature service or view with the name lora_tracker_1 is needed.
 
 There is a script to generate a Shapefile that can be used to create this service (see here https://github.com/tnc-ca-geo/LoraTesting/tree/master/clients/helpers). I will add a script to generate this and migrate existing data.
+
+## Web App
+
+There is a basic web app that can be accessed using https://lora-tracker.codefornature.org/. In order to use the web application login into ArcgisOnline using your account. 
