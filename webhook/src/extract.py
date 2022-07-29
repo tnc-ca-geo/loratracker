@@ -70,8 +70,8 @@ def transform_time(utc_time, frmt='%Y-%m-%dT%H:%M:%S'):
     # cutting time string here since strptime does not supports 9 decimal
     # points in seconds, not pretty but quick work around
     # get rid of decimal points, todo: make this more elegant
-    print('FROM_TZ', from_tz)
-    print('TO_TZ', to_tz)
+    # print('FROM_TZ', from_tz)
+    # print('TO_TZ', to_tz)
     # make sure timezones are created (will return None if incorrect tz
     # string provided)
     assert from_tz
