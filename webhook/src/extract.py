@@ -132,9 +132,12 @@ def extract_feature(event):
     label = DEVICE_LABELS.get(device) or device
     geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
         'spatialReference': {'wkid': 4326}}
+    tme = decoded.get('time')
+    time_str = datetime.strftime(
+        decoded.get('time'), '%Y-%m-%d %H:%M:%S') if tme else ''
     attributes = {
         'received_t': transform_time(uplink_message.get('received_at')),
-        'time': datetime.strftime(decoded.get('time'), '%Y-%m-%d %H:%M:%S'),
+        'time': time_str,
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': dic.get('end_device_ids', {}).get('device_id'),

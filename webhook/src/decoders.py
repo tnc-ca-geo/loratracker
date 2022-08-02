@@ -99,6 +99,6 @@ def oyster(payload, port=0):
             'type': 'position', 'status': 'ok', 'inTrip': bytes[8] & 0x1 != 0,
             'fixFailed':  bytes[8] & 0x2 != 0,
             'batV': int(bytes[10] * 0.025 * 100)/100,
-            'x': latitude, 'y': longitude, 'heading': (bytes[8] >> 2) * 5.625,
+            'x': longitude, 'y': latitude, 'heading': (bytes[8] >> 2) * 5.625,
             'speedKmh': bytes[9]}
     return NOT_A_LOCATION
