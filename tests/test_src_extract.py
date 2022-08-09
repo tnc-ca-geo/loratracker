@@ -25,7 +25,7 @@ class TextExtract(TestCase):
                     'time': '2021-08-25 19:23:00',
                     'app': 'test-n-ranging',
                     'dev': 'feather-ranger-f3c3',
-                    'frames': 1, # unused
+                    'frames': 1,
                     'gateway_1': 'foo',
                     'rssi_1': -30,
                     'dr': 3,
