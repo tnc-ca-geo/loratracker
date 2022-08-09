@@ -23,7 +23,6 @@ DEVICE_MATRIX = {
     'feather-ranger-f3c3': decoders.feather_ranger_f3c3
 }
 
-
 # check whether an application_specific_decoder exist
 APPLICATION_MATRIX = {
     'test-n-ranging': decoders.oyster,
@@ -32,16 +31,51 @@ APPLICATION_MATRIX = {
     'miromico-asset-test': decoders.miromico_cargo
 }
 
-
 # device labels`
-DEVICE_LABELS = {
-    'adeunis-ftd-239db': 'CTS&E Loaner Field tester',
-    'adeunis-ftd-23754': 'Marks Adeunis FTD',
-    'feather-ranger-f3c3': 'The NO device (Falk)',
-    'jldp-oyster-c7a0': 'Blue Kawasaki OHV (JLDP)',
-    'jldp-oyster-c7a8': 'Green Honda OHV (JLDP)',
-    'oyster-005d93': 'Blue Toyoto 4runner (SCI)',
-    'tnc-adeunis-ftd-0235a1': 'The French Connection (JLDP)'
+LABEL_LOOKUP = {
+    'adeunis-ftd-23754': 'Mark Goering tester',
+    'feather-ranger-f3c3': 'The NO device',
+    'miromico-007a4f': 'JLDP test device (lost)',
+    'miromico-007a2f': 'JLDP #4 flatbed',
+    'miromico-007a2e': 'JLDP #7 Silverado',
+    'miromico-007a2d': 'JLDP #10 flatbed',
+    'miromico-007a2c': 'JLDP blue UTV',
+    'miromico-007a29': 'JLDP #2 Colorado',
+    'miromico-007a26': 'JLDP #5 flatbed',
+    'miromico-007a30': 'JLDP green UTV',
+    'miromico-007a25': 'JLDP black utv',
+    'oyster-005d93': 'SCI Blue 4runner',
+    'jldp-oyster-c7a8': 'JLDP Green Honda OHV',
+    'jldp-oyster-c7a0': 'JLDP Blue Kawasaki OHV',
+    'tnc-adeunis-ftd-0235a1': 'JLDP Kelly signal tester',
+}
+
+# domains
+DOMAIN_LOOKUP = {
+    'adeunis-ftd-23754': 'wa',
+    'miromico-007a4f': 'jldp',
+    'miromico-007a2f': 'jldp',
+    'miromico-007a2e': 'jldp',
+    'miromico-007a2d': 'jldp',
+    'miromico-007a2c': 'jldp',
+    'miromico-007a2b': 'sci',
+    'miromico-007a2a': 'sci',
+    'miromico-007a29': 'jldp',
+    'miromico-007a26': 'jldp',
+    'miromico-007a30': 'jldp',
+    'miromico-007a25': 'jldp',
+    '9876b6115b69': 'staten',
+    'raspverry_pi_ranger': 'falk',
+    '3939353476387418': 'falk',
+    'feather_ranger': 'falk',
+    'feather_ranger_2': 'falk',
+    'feather-ranger-f3c3': 'falk',
+    'oyster-005d93': 'sci',
+    'jldp-oyster-c7a8': 'jldp',
+    'jldp-oyster-c7a0': 'jldp',
+    'tnc-mmico-cargo-007a4f': 'jldp',
+    'tnc-mmico-tracker2-007a4e': 'jldp',
+    'tnc-adeunis-ftd-0235a1': 'jldp'
 }
 
 
@@ -129,7 +163,7 @@ def extract_feature(event):
         return {}
     gateways = get_gateways(uplink_message)
     settings = uplink_message.pop('settings', {})
-    label = DEVICE_LABELS.get(device) or device
+    label = LABEL_LOOKUP.get(device) or device
     geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
         'spatialReference': {'wkid': 4326}}
     tme = decoded.get('time')
@@ -140,10 +174,10 @@ def extract_feature(event):
         'time': time_str,
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
-        'dev': dic.get('end_device_ids', {}).get('device_id'),
-        'frames': None,
-        'gateway': gateways[0][0] if gateways else None,
-        'rssi': gateways[0][2] if gateways else 0,
+        'dev': device,
+        'frames': uplink_message.get('f_port', 0),
+        'gateway_1': gateways[0][0] if gateways else None,
+        'rssi_1': gateways[0][2] if gateways else 0,
         'dr': settings.get('data_rate_index'),
         'cr': settings.get('coding_rate'),
         'snr': gateways[0][1] if gateways else 0,
@@ -151,6 +185,8 @@ def extract_feature(event):
         'airtime_ms': int(float(
             re.sub(r'[^0-9.]', '',
             uplink_message.get('consumed_airtime', '0'))) * 1E+3),
-        'gtw_count': len(gateways)}
+        'gtw_count': len(gateways),
+        'domain': DOMAIN_LOOKUP.get(device),
+        'label': label}
     return {
         'geometry': geometry, 'attributes': attributes}

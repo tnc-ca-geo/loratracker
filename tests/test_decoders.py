@@ -18,7 +18,7 @@ class TestDecoders(TestCase):
         decoders.adeunis(payload_example), {
             'triggeredByAccelerometer': False, 'triggeredByPushButton': False,
             'numberOfSatellites': 4, 'gpsAvailable': True, 'status': 'ok',
-            'x': -122.39283, 'y': 48.6789, 'receptionQuality': 'average'})
+            'x': -122.39283, 'y': 47.6789, 'receptionQuality': 'average'})
 
 
     def test_adeunis_fail(self):
@@ -57,8 +57,8 @@ class TestDecoders(TestCase):
         self.assertEqual(
             decoders.oyster(payload_example, 1), {
                 'type': 'position', 'status': 'ok', 'inTrip': False,
-                'fixFailed': True, 'batV': 4.35,  'x': 34.5164706,
-                'y': -120.4584057, 'heading': 123.75, 'speedKmh': 0})
+                'fixFailed': True, 'batV': 4.35,  'y': 34.5164706,
+                'x': -120.4584057, 'heading': 123.75, 'speedKmh': 0})
 
     def test_oyster_fail(self):
         payload_example = b'osuSFIeBM7haAK4='

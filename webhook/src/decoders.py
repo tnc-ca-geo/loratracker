@@ -18,10 +18,12 @@ def adeunis(payload, port=0):
             ((bytes[4] & 0xf0) >> 4) * .001 + (bytes[4] & 0xf) * .0001 +
             ((bytes[5] & 0xf0) >> 4) * .00001)/60
         sign = -1 if bytes[5] & 0x1 else 1
-        lat = int((latDeg + latMin) * 100000)/100000 + sign
+        lat = int(((latDeg * sign) + (latMin * sign)) * 100000)/100000
+        print('DEBUG', latDeg, lat)
         lonDeg = (
             ((bytes[5] & 0xf0) >> 4) * 100 + (bytes[5] & 0xf) * 10 +
             ((bytes[6] & 0xf0) >> 4))
+        # print('DEBUG', lonDeg)
         lonMin = (
             (bytes[6] & 0xf) * 10 + ((bytes[7] & 0xf0) >> 4) +
             (bytes[7] & 0xf) * .1 + ((bytes[8] & 0xf0) >> 4) * .01)/60

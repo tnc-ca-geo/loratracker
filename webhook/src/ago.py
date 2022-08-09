@@ -15,7 +15,7 @@ CLIENT_SECRET = os.environ.get('AGO_CLIENT_SECRET')
 TOKEN_URL = 'https://www.arcgis.com/sharing/rest/oauth2/token/'
 AGO_INSTANCE_URL = 'https://services.arcgis.com/F7DSX1DSNSiWmOqh/'
 FEATURE_SERVICE = (
-    AGO_INSTANCE_URL + 'arcgis/rest/services/lora_tracking_1/FeatureServer/')
+    AGO_INSTANCE_URL + 'arcgis/rest/services/lora_tracking_2/FeatureServer/')
 
 
 class TokenStore():

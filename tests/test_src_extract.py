@@ -25,15 +25,17 @@ class TextExtract(TestCase):
                     'time': '2021-08-25 19:23:00',
                     'app': 'test-n-ranging',
                     'dev': 'feather-ranger-f3c3',
-                    'frames': None, # unused
-                    'gateway': 'foo',
-                    'rssi': -30,
+                    'frames': 1, # unused
+                    'gateway_1': 'foo',
+                    'rssi_1': -30,
                     'dr': 3,
                     'cr': '4/5',
                     'snr': 10,
                     'f_mhz': 905.3,
                     'airtime_ms': 107,
-                    'gtw_count': 2}})
+                    'gtw_count': 2,
+                    'label': 'The NO device',
+                    'domain': 'falk'}})
 
     def test_invalid_json(self):
         modified_example = deepcopy(lorawan_webhook_example)
