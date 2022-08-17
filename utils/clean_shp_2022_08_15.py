@@ -299,7 +299,8 @@ def main():
         schema = shapes.schema
         old_properties = schema.get('properties')
         for item in [
-            'CreationDa', 'EditDate', 'Editor', 'GlobalID', 'Creator', 'snr']:
+            'CreationDa', 'EditDate', 'Editor', 'GlobalID', 'Creator', 'snr',
+            'time', 'received_t']:
             old_properties.pop(item)
         new_gw_info = []
         for idx in range(1, 6):
@@ -317,7 +318,9 @@ def main():
             ('tr_tm_utc', 'str:20'),
             ('buffered', 'int'),
             ('tm_valid', 'int')
-        ] + list(old_properties.items()) + new_gw_info + [('snr', 'str:10')]
+        ] + list(old_properties.items()) + new_gw_info + [
+        # move these legacy fields to the end for future removal
+            ('snr', 'str:10'), ('time', 'str:20'), ('received_t', 'str:20') ]
         new_properties = OrderedDict([item for item in properties_list])
         schema['properties'] = new_properties
         metadata = {
@@ -334,9 +337,6 @@ def main():
                         time_valid +=1
                     else:
                         pass
-                        # print('INVALID', count)
-                        # print(properties)
-                        # sys.exit(1)
                     dest.write(new_shape)
                 else:
                     discarded += 1
