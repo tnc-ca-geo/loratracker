@@ -13,16 +13,15 @@ root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(root, 'layers', 'shared'))
 import lookups
 from schema import RECORD_TEMPLATE
+from settings import UTC_ZONE, TIME_FORMAT
 
 
-UTC_ZONE = tz.gettz('UTC')
 LA_ZONE = tz.gettz('America/Los_Angeles')
 # PST seems to have daylight saving build, redefinig it since it is fixed
 PST_ZONE = tz.tzoffset('PST', -28800) # tz.gettz('PST')
 BASE_PATH = os.path.abspath(os.path.join('..', '..', 'data'))
 DATA = os.path.join(BASE_PATH, 'lora_tracking_2a', 'lora_tracking_2.shp')
 NEW = os.path.join(BASE_PATH, 'lora_tracking_3')
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 DISCARD_LIST = [
     'd3ab8843-e530-4ce8-bc0e-a3bbffe037e6',

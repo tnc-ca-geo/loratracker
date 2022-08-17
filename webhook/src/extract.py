@@ -11,12 +11,12 @@ from dateutil import tz
 # project
 from src import decoders
 import lookups
+import settings
 
 # doing this only california for now, make sure that the same entries exist
 # in the Lambda environment
-from_tz = tz.gettz('UTC')
-to_tz = tz.gettz('America/Los_Angeles')
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+# from_tz = tz.gettz('UTC')
+# to_tz = tz.gettz('America/Los_Angeles')
 
 # check whether a device specific decoder exist
 DEVICE_MATRIX = {
@@ -49,23 +49,23 @@ def gps_validate(transformed_message):
     return True
 
 
-def transform_time(utc_time, frmt='%Y-%m-%dT%H:%M:%S'):
+def get_time(utc_time, frmt='%Y-%m-%dT%H:%M:%S', zone=settings.UTC_ZONE):
     """
-    transform utc time into local time
+    CLean up time. We don't convert to local time anymore.
+
+    Args:
+        utc_time(str): Time string as received from the server. Clean millis
+    Returns:
+        datetime
     """
-    # cutting time string here since strptime does not supports 9 decimal
-    # points in seconds, not pretty but quick work around
-    # get rid of decimal points, todo: make this more elegant
-    # print('FROM_TZ', from_tz)
-    # print('TO_TZ', to_tz)
-    # make sure timezones are created (will return None if incorrect tz
-    # string provided)
-    assert from_tz
-    assert to_tz
+    assert zone
     utc_time = utc_time.split('.')[0]
-    naive_utc = datetime.strptime(utc_time, frmt)
-    utc = naive_utc.replace(tzinfo=from_tz)
-    return utc.astimezone(to_tz).strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        naive_utc = datetime.strptime(utc_time, frmt)
+    except (TypeError, ValueError):
+        return None
+    else:
+        return naive_utc.replace(tzinfo=zone)
 
 
 def get_gateways(dic):
@@ -113,17 +113,19 @@ def extract_feature(event):
         return {}
     if decoded.get('status') != 'ok':
         return {}
-    settings = uplink_message.pop('settings', {})
+    lora_settings = uplink_message.pop('settings', {})
     label = lookups.DEVICE_LABELS.get(device) or device
     geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
         'spatialReference': {'wkid': 4326}}
-    tme = decoded.get('time')
-    time_str = datetime.strftime(
-        decoded.get('time'), '%Y-%m-%d %H:%M:%S') if tme else ''
-    lora = settings.get('data_rate', {}).get('lora', {})
+    lora = lora_settings.get('data_rate', {}).get('lora', {})
+    rec_tm = get_time(uplink_message.get('received_at'))
+    pl_tm = decoded.get('time')
+    rec_tm_str = rec_tm.strftime(settings.TIME_FORMAT)
+    pl_tm_str = pl_tm.strftime(settings.TIME_FORMAT) if time else ''
     attributes = {
-        'received_t': transform_time(uplink_message.get('received_at')),
-        'time': time_str,
+        'rec_tm_utc': rec_tm_str,
+        'pl_tm_utc': pl_tm_str,
+        'tr_tm_utc': pl_tm_str if pl_tm_str else rec_tm_str,
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': device,
@@ -131,8 +133,8 @@ def extract_feature(event):
         'dr': (
             str(lora.get('bandwidth', '')) + '/' +
             str(lora.get('spreading_factor', ''))),
-        'cr': settings.get('coding_rate'),
-        'f_mhz' : int(settings.get('frequency', '0'))/1E+6,
+        'cr': lora_settings.get('coding_rate'),
+        'f_mhz' : int(lora_settings.get('frequency', '0'))/1E+6,
         'airtime_ms': int(float(
             re.sub(r'[^0-9.]', '',
             uplink_message.get('consumed_airtime', '0'))) * 1E+3),

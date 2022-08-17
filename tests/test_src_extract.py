@@ -1,5 +1,7 @@
 # standard library
 from copy import deepcopy
+from datetime import datetime
+from dateutil import tz
 import json
 import os
 from unittest import TestCase
@@ -21,8 +23,9 @@ class TextExtract(TestCase):
             'geometry': {'x': -122.27557, 'y': 37.8418,
             'spatialReference': {'wkid': 4326}},
             'attributes': {
-                'received_t': '2021-08-25 12:22:58',
-                'time': '2021-08-25 19:23:00',
+                'rec_tm_utc': '2021-08-25 19:22:58',
+                'pl_tm_utc': '2021-08-25 19:23:00',
+                'tr_tm_utc': '2021-08-25 19:23:00',
                 'app': 'test-n-ranging',
                 'dev': 'feather-ranger-f3c3',
                 'snr': 10,
@@ -63,7 +66,8 @@ class TestExtractHelpers(TestCase):
 
 class TestTransformTime(TestCase):
 
-    def test_transform_time(self):
+    def test_get_time(self):
+        UTC = tz.gettz('UTC')
         example_time = '2021-08-25T19:22:58.780515972Z'
-        res = extract.transform_time(example_time)
-        self.assertEqual(res, '2021-08-25 12:22:58')
+        res = extract.get_time(example_time)
+        self.assertEqual(res, datetime(2021, 8, 25, 19, 22, 58, tzinfo=UTC))
