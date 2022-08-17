@@ -10,6 +10,7 @@ import time
 from dateutil import tz
 # project
 from src import decoders
+import lookups
 
 # doing this only california for now, make sure that the same entries exist
 # in the Lambda environment
@@ -17,66 +18,17 @@ from_tz = tz.gettz('UTC')
 to_tz = tz.gettz('America/Los_Angeles')
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-
 # check whether a device specific decoder exist
 DEVICE_MATRIX = {
-    'feather-ranger-f3c3': decoders.feather_ranger_f3c3
-}
+    'feather-ranger-f3c3': decoders.feather_ranger_f3c3}
 
 # check whether an application_specific_decoder exist
 APPLICATION_MATRIX = {
     'test-n-ranging': decoders.oyster,
     'adeunis-tester': decoders.adeunis,
     'miromico-cargo': decoders.miromico_cargo,
-    'miromico-asset-test': decoders.miromico_cargo
-}
+    'miromico-asset-test': decoders.miromico_cargo}
 
-# device labels`
-LABEL_LOOKUP = {
-    'adeunis-ftd-23754': 'Mark Goering tester',
-    'feather-ranger-f3c3': 'The NO device',
-    'miromico-007a4f': 'JLDP test device (lost)',
-    'miromico-007a2f': 'JLDP #4 flatbed',
-    'miromico-007a2e': 'JLDP #7 Silverado',
-    'miromico-007a2d': 'JLDP #10 flatbed',
-    'miromico-007a2c': 'JLDP blue UTV',
-    'miromico-007a29': 'JLDP #2 Colorado',
-    'miromico-007a26': 'JLDP #5 flatbed',
-    'miromico-007a30': 'JLDP green UTV',
-    'miromico-007a25': 'JLDP black utv',
-    'oyster-005d93': 'SCI Blue 4runner',
-    'jldp-oyster-c7a8': 'JLDP Green Honda OHV',
-    'jldp-oyster-c7a0': 'JLDP Blue Kawasaki OHV',
-    'tnc-adeunis-ftd-0235a1': 'JLDP Kelly signal tester',
-}
-
-# domains
-DOMAIN_LOOKUP = {
-    'adeunis-ftd-23754': 'wa',
-    'miromico-007a4f': 'jldp',
-    'miromico-007a2f': 'jldp',
-    'miromico-007a2e': 'jldp',
-    'miromico-007a2d': 'jldp',
-    'miromico-007a2c': 'jldp',
-    'miromico-007a2b': 'sci',
-    'miromico-007a2a': 'sci',
-    'miromico-007a29': 'jldp',
-    'miromico-007a26': 'jldp',
-    'miromico-007a30': 'jldp',
-    'miromico-007a25': 'jldp',
-    '9876b6115b69': 'staten',
-    'raspverry_pi_ranger': 'falk',
-    '3939353476387418': 'falk',
-    'feather_ranger': 'falk',
-    'feather_ranger_2': 'falk',
-    'feather-ranger-f3c3': 'falk',
-    'oyster-005d93': 'sci',
-    'jldp-oyster-c7a8': 'jldp',
-    'jldp-oyster-c7a0': 'jldp',
-    'tnc-mmico-cargo-007a4f': 'jldp',
-    'tnc-mmico-tracker2-007a4e': 'jldp',
-    'tnc-adeunis-ftd-0235a1': 'jldp'
-}
 
 
 def empty_decoder(payload):
@@ -162,7 +114,7 @@ def extract_feature(event):
     if decoded.get('status') != 'ok':
         return {}
     settings = uplink_message.pop('settings', {})
-    label = LABEL_LOOKUP.get(device) or device
+    label = lookups.DEVICE_LABELS.get(device) or device
     geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
         'spatialReference': {'wkid': 4326}}
     tme = decoded.get('time')
@@ -181,7 +133,7 @@ def extract_feature(event):
         'airtime_ms': int(float(
             re.sub(r'[^0-9.]', '',
             uplink_message.get('consumed_airtime', '0'))) * 1E+3),
-        'domain': DOMAIN_LOOKUP.get(device),
+        'domain': lookups.DOMAINS.get(device),
         'label': label}
     gateways = get_gateways(uplink_message)
     attributes['gtw_count'] = len(gateways)

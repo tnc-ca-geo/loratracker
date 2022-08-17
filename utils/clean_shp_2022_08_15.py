@@ -25,7 +25,7 @@ DISCARD_LIST = [
     'aac015bd-fd36-491d-b84e-ad091eff73b4']
 
 RECORD_TEMPLATE = {
-    'GlobalID': None,
+    # 'GlobalID': None,
     'rec_tm_utc': None,
     'pl_tm_utc': None,
     'tr_tm_utc': None,
@@ -312,7 +312,7 @@ def main():
             new_gw_info.append(('rssi_' + str(idx), 'str:10'))
             new_gw_info.append(('snr_' + str(idx), 'str:10'))
         properties_list = [
-            ('GlobalID', 'str:38'),
+            # ('GlobalID', 'str:38'),
             ('rec_tm_utc', 'str:20'),
             ('pl_tm_utc', 'str:20'),
             ('tr_tm_utc', 'str:20'),

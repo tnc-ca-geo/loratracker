@@ -4,9 +4,9 @@ import json
 import os
 from unittest import TestCase
 import sys
-sys.path.insert(
-    0, os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'webhook')))
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(root, 'webhook'))
+sys.path.append(os.path.join(root, 'layers', 'shared'))
 # testing
 from tests.example_data import lorawan_webhook_example
 # project
