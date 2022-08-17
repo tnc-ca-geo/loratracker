@@ -20,14 +20,12 @@ class TestDecoders(TestCase):
             'numberOfSatellites': 4, 'gpsAvailable': True, 'status': 'ok',
             'x': -122.39283, 'y': 47.6789, 'receptionQuality': 'average'})
 
-
     def test_adeunis_fail(self):
         # different message type
         payload_example = 'D/////A='
         self.assertEqual(
             decoders.adeunis(payload_example), {
                 'status': 'error', 'msg': 'not a location message'})
-
 
     def test_feather_ranger_f3c3(self):
         payload_example = (
@@ -50,7 +48,6 @@ class TestDecoders(TestCase):
         self.assertEqual(
             decoders.miromico_cargo(payload_example, 101), {
             'status': 'error', 'msg': 'not a location message'})
-
 
     def test_oyster(self):
         payload_example = b'osuSFIeBM7haAK4='

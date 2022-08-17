@@ -161,7 +161,6 @@ def extract_feature(event):
         return {}
     if decoded.get('status') != 'ok':
         return {}
-    gateways = get_gateways(uplink_message)
     settings = uplink_message.pop('settings', {})
     label = LABEL_LOOKUP.get(device) or device
     geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
@@ -176,17 +175,25 @@ def extract_feature(event):
             'application_id'),
         'dev': device,
         'frames': uplink_message.get('f_port', 0),
-        'gateway_1': gateways[0][0] if gateways else None,
-        'rssi_1': gateways[0][2] if gateways else 0,
         'dr': settings.get('data_rate_index'),
         'cr': settings.get('coding_rate'),
-        'snr': gateways[0][1] if gateways else 0,
         'f_mhz' : int(settings.get('frequency', '0'))/1E+6,
         'airtime_ms': int(float(
             re.sub(r'[^0-9.]', '',
             uplink_message.get('consumed_airtime', '0'))) * 1E+3),
-        'gtw_count': len(gateways),
         'domain': DOMAIN_LOOKUP.get(device),
         'label': label}
-    return {
-        'geometry': geometry, 'attributes': attributes}
+    gateways = get_gateways(uplink_message)
+    attributes['gtw_count'] = len(gateways)
+    # this is currently here for backward compatibility
+    # TODO: remove after data migration
+    attributes['snr'] = gateways[0][1]
+    for idx in range(0, attributes['gtw_count']):
+        index = str(idx+1)
+        try:
+            attributes['gateway_' + index] = gateways[idx][0]
+            attributes['snr_' + index] = gateways[idx][1]
+            attributes['rssi_' + index] = gateways[idx][2]
+        except IndexError:
+            print('GATEWAY EXTRACT FAILED')
+    return {'geometry': geometry, 'attributes': attributes}

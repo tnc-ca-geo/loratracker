@@ -65,9 +65,12 @@ def clean(feature):
     properties.pop('gateway')
     properties['rssi_1'] = feature['properties']['rssi']
     properties.pop('rssi')
+    properties['snr_1'] = feature['properties']['snr']
+    properties.pop('snr')
     for item in ['2', '3', '4', '5']:
         properties['gateway_' + item] = None
         properties['rssi_' + item] = None
+        properties['snr_' + item] = None
     try:
         properties['label'] = LABEL_LOOKUP[properties['dev']]
     except KeyError:
@@ -92,10 +95,12 @@ def main():
         schema = shapes.schema
         schema['properties']['label'] = 'str:80'
         schema['properties']['domain'] = 'str:80'
+        schema['properties']['buffered'] = 'int'
         schema['properties'].pop('gateway')
         schema['properties'].pop('rssi')
         for item in ['1', '2', '3', '4', '5']:
             schema['properties']['gateway_' + item] = 'str:80'
+            schema['properties']['snr_' + item] = 'str:10'
             schema['properties']['rssi_' + item] = 'str:80'
         metadata = {
             'driver': shapes.driver, 'crs': shapes.crs, 'schema': schema}

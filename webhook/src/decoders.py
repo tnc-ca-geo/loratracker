@@ -19,7 +19,6 @@ def adeunis(payload, port=0):
             ((bytes[5] & 0xf0) >> 4) * .00001)/60
         sign = -1 if bytes[5] & 0x1 else 1
         lat = int(((latDeg * sign) + (latMin * sign)) * 100000)/100000
-        print('DEBUG', latDeg, lat)
         lonDeg = (
             ((bytes[5] & 0xf0) >> 4) * 100 + (bytes[5] & 0xf) * 10 +
             ((bytes[6] & 0xf0) >> 4))
@@ -55,6 +54,7 @@ def feather_ranger_f3c3(payload, port=0):
 
 def miromico_cargo(payload, port=0):
     # standard location message on port 103
+    # https://docs.miromico.ch/tracker/dev/
     if port == 103:
         bytes = base64.b64decode(payload)
         dat = (bytes[ 0] << 24 | bytes[ 1] << 16 | bytes[ 2] << 8 | bytes[ 3])

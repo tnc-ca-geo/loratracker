@@ -14,7 +14,6 @@ from src.ago import FeatureService
 
 def main():
     service = FeatureService()
-    # res = service.delete_records(sql_query='dev IS NULL')
     res = service.delete_records(
         sql_query=
             'received_t > \'2022-08-04 00:00:00\' AND '

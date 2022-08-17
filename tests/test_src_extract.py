@@ -16,26 +16,40 @@ from webhook.src import extract
 class TextExtract(TestCase):
 
     def test_extract(self):
-        self.assertDictEqual(
-            extract.extract_feature(lorawan_webhook_example), {
-                'geometry': {'x': -122.27557, 'y': 37.8418,
-                'spatialReference': {'wkid': 4326}},
-                'attributes': {
-                    'received_t': '2021-08-25 12:22:58',
-                    'time': '2021-08-25 19:23:00',
-                    'app': 'test-n-ranging',
-                    'dev': 'feather-ranger-f3c3',
-                    'frames': 1,
-                    'gateway_1': 'foo',
-                    'rssi_1': -30,
-                    'dr': 3,
-                    'cr': '4/5',
-                    'snr': 10,
-                    'f_mhz': 905.3,
-                    'airtime_ms': 107,
-                    'gtw_count': 2,
-                    'label': 'The NO device',
-                    'domain': 'falk'}})
+        res = extract.extract_feature(lorawan_webhook_example)
+        expected = {
+            'geometry': {'x': -122.27557, 'y': 37.8418,
+            'spatialReference': {'wkid': 4326}},
+            'attributes': {
+                'received_t': '2021-08-25 12:22:58',
+                'time': '2021-08-25 19:23:00',
+                'app': 'test-n-ranging',
+                'dev': 'feather-ranger-f3c3',
+                'snr': 10,
+                'frames': 1,
+                'gateway_1': 'foo',
+                'snr_1': 10,
+                'rssi_1': -30,
+                'gateway_2': 'laird-rg191-296af5',
+                'snr_2': 10,
+                'rssi_2': -48,
+                # 'gatway_3': None,
+                # 'snr_3': None,
+                # 'rssi_3': None,
+                # 'gatway_4': None,
+                # 'snr_4': None,
+                # 'rssi_4': None,
+                # 'gatway_5': None,
+                # 'snr_5': None,
+                # 'rssi_5': None,
+                'dr': 3,
+                'cr': '4/5',
+                'f_mhz': 905.3,
+                'airtime_ms': 107,
+                'gtw_count': 2,
+                'label': 'The NO device',
+                'domain': 'falk'}}
+        self.assertDictEqual(res, expected)
 
     def test_invalid_json(self):
         modified_example = deepcopy(lorawan_webhook_example)
