@@ -35,7 +35,7 @@ class TextExtract(TestCase):
                 'snr_2': 10,
                 'rssi_2': -48,
                 'gw_label_2': 'Falk Laird home',
-                'dr': 3,
+                'dr': '125000/7',
                 'cr': '4/5',
                 'f_mhz': 905.3,
                 'airtime_ms': 107,

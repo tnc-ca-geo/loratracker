@@ -120,6 +120,7 @@ def extract_feature(event):
     tme = decoded.get('time')
     time_str = datetime.strftime(
         decoded.get('time'), '%Y-%m-%d %H:%M:%S') if tme else ''
+    lora = settings.get('data_rate', {}).get('lora', {})
     attributes = {
         'received_t': transform_time(uplink_message.get('received_at')),
         'time': time_str,
@@ -127,7 +128,9 @@ def extract_feature(event):
             'application_id'),
         'dev': device,
         'frames': uplink_message.get('f_port', 0),
-        'dr': settings.get('data_rate_index'),
+        'dr': (
+            str(lora.get('bandwidth', '')) + '/' +
+            str(lora.get('spreading_factor', ''))),
         'cr': settings.get('coding_rate'),
         'f_mhz' : int(settings.get('frequency', '0'))/1E+6,
         'airtime_ms': int(float(
