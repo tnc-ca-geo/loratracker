@@ -146,6 +146,8 @@ def extract_feature(event):
             attributes['gateway_' + index] = gateways[idx][0]
             attributes['snr_' + index] = gateways[idx][1]
             attributes['rssi_' + index] = gateways[idx][2]
+            attributes['gw_label_' + index] = lookups.GATEWAY_LABELS.get(
+                gateways[idx][0])
         except IndexError:
             print('GATEWAY EXTRACT FAILED')
     return {'geometry': geometry, 'attributes': attributes}
