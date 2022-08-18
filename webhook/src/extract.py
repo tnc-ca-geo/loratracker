@@ -2,7 +2,7 @@
 Extract data from request context
 """
 # standard library
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import re
 import time
@@ -13,14 +13,11 @@ from src import decoders
 import lookups
 import settings
 
-# doing this only california for now, make sure that the same entries exist
-# in the Lambda environment
-# from_tz = tz.gettz('UTC')
-# to_tz = tz.gettz('America/Los_Angeles')
 
 # check whether a device specific decoder exist
 DEVICE_MATRIX = {
     'feather-ranger-f3c3': decoders.feather_ranger_f3c3}
+
 
 # check whether an application_specific_decoder exist
 APPLICATION_MATRIX = {
@@ -28,14 +25,6 @@ APPLICATION_MATRIX = {
     'adeunis-tester': decoders.adeunis,
     'miromico-cargo': decoders.miromico_cargo,
     'miromico-asset-test': decoders.miromico_cargo}
-
-
-
-def empty_decoder(payload):
-    """
-    Use this if not decocer found
-    """
-    return {}
 
 
 def gps_validate(transformed_message):
@@ -49,23 +38,33 @@ def gps_validate(transformed_message):
     return True
 
 
-def get_time(utc_time, frmt='%Y-%m-%dT%H:%M:%S', zone=settings.UTC_ZONE):
+def get_time(utc_tm_st_dt, frmt=settings.TIME_FORMAT, zone=settings.UTC_ZONE):
     """
     CLean up time. We don't convert to local time anymore.
 
     Args:
-        utc_time(str): Time string as received from the server. Clean millis
+        utc_tm_st_or_dt(str): Time string as received from the server.
+            Clean millis
+        utc_tm_st_or_dt(datetime): Alternatively we can accept a datetime object
     Returns:
         datetime
     """
+    formats = ['%Y-%m-%dT%H:%M:%S', frmt]
     assert zone
-    utc_time = utc_time.split('.')[0]
     try:
-        naive_utc = datetime.strptime(utc_time, frmt)
-    except (TypeError, ValueError):
-        return None
-    else:
-        return naive_utc.replace(tzinfo=zone)
+        utc_tm_st_dt.strftime(settings.TIME_FORMAT)
+        return utc_tm_st_dt.replace(tzinfo=zone)
+    except AttributeError:
+        pass
+    for item in formats:
+        # test whether we already have the right time format
+        try:
+            utc_tm_st_dt = utc_tm_st_dt.split('.')[0]
+            naive_utc = datetime.strptime(utc_tm_st_dt, item)
+        except (ValueError, AttributeError):
+            continue
+        else:
+            return naive_utc.replace(tzinfo=zone)
 
 
 def get_gateways(dic):
@@ -105,31 +104,46 @@ def extract_feature(event):
         'end_device_ids', {}).get('application_ids', {}).get('application_id')
     device = dic.get('end_device_ids', {}).get('device_id')
     decoder_function = DEVICE_MATRIX.get(
-        device) or APPLICATION_MATRIX.get(application) or empty_decoder
-    try:
-        decoded = decoder_function(
-            uplink_message.get('frm_payload'), uplink_message.get('f_port', 0))
-    except (ValueError, IndexError):
-        return {}
-    if decoded.get('status') != 'ok':
-        return {}
+        device) or APPLICATION_MATRIX.get(application)
+    # use the network decoder if this stack does not provide a decoder function
+    # it needs at least 'x' and 'y' fields, 'time' is optionial
+    if not decoder_function:
+        decoded = uplink_message.get('decoded_payload')
+    else:
+        try:
+            decoded = decoder_function(
+                uplink_message.get('frm_payload'),
+                uplink_message.get('f_port', 0))
+        except (ValueError, IndexError):
+            return {}
+        if decoded.get('status') != 'ok':
+            return {}
     lora_settings = uplink_message.pop('settings', {})
     label = lookups.DEVICE_LABELS.get(device) or device
-    geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
-        'spatialReference': {'wkid': 4326}}
+    try:
+        geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
+            'spatialReference': {'wkid': 4326}}
+    except KeyError:
+        return {}
     lora = lora_settings.get('data_rate', {}).get('lora', {})
     rec_tm = get_time(uplink_message.get('received_at'))
-    pl_tm = decoded.get('time')
+    # this is currently pretty naive and has to be handled by decoder
     rec_tm_str = rec_tm.strftime(settings.TIME_FORMAT)
-    pl_tm_str = pl_tm.strftime(settings.TIME_FORMAT) if time else ''
+    pl_tm = get_time(decoded.get('time'))
+    try:
+        pl_tm_str = pl_tm.strftime(settings.TIME_FORMAT)
+    except AttributeError:
+        pl_tm_str = None
     attributes = {
         'rec_tm_utc': rec_tm_str,
         'pl_tm_utc': pl_tm_str,
         'tr_tm_utc': pl_tm_str if pl_tm_str else rec_tm_str,
+        'tm_valid': True,
+        'buffered': rec_tm - pl_tm > timedelta(minutes=2) if pl_tm else False,
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': device,
-        'frames': uplink_message.get('f_port', 0),
+        'f_port': uplink_message.get('f_port', 0),
         'dr': (
             str(lora.get('bandwidth', '')) + '/' +
             str(lora.get('spreading_factor', ''))),

@@ -8,7 +8,7 @@ RECORD_TEMPLATE = {
     'received_t': None,
     'app': None,
     'dev': None,
-    'frames': None,
+    'f_port': None,
     'dr': None,
     'cr': None,
     'snr': None,
