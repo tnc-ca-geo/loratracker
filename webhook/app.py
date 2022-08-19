@@ -62,14 +62,16 @@ def lambda_handler(event, context):
         success = parse_success(parsed)
         if success:
             return {'statusCode': 201, 'body':
-                json.dumps({'message': 'Added ' + str(success)})}
+                json.dumps(
+                    {'message': 'ok', 'items': success}, separators=(',', ':'))}
         else:
             # output to Cloudwatch for debugging
             print('INVALID RECORD ', feature)
             print('AGO ERROR RESPONSE: ', response.content)
             return {'statusCode': 422, 'body': json.dumps({
                 'message': 'Record could not be added to AGO. '
-                'See Cloudwatch log for details.'})}
+                'See Cloudwatch log for details.'}, separators=(',', ':'))}
     # Respond with 200 so that health check at TTI does not report problems.
     return {
-        'statusCode': 200, 'body': json.dumps({'message': 'invalid GPS fix'})}
+        'statusCode': 200, 'body': json.dumps(
+            {'message': 'invalid GPS fix'}, separators=(',', ':'))}

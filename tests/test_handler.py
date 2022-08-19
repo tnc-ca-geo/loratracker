@@ -45,7 +45,7 @@ class TestHandler(TestCase):
                 b'{"addResults":[{"objectId":43978,"uniqueId":43978,'
                 b'"globalId":null,"success":true}]}'))
         res = app.lambda_handler(lorawan_webhook_example, {})
-        self.assertEqual(res['body'], '{"message": "Added [43978]"}')
+        self.assertEqual(res['body'], '{"message":"ok","items":[43978]}')
         self.assertEqual(res['statusCode'], 201)
 
     @mock.patch('app.ago.FeatureService')
@@ -60,7 +60,7 @@ class TestHandler(TestCase):
                 b'should be data type esriFieldTypeDouble."}}]}'))
         res = app.lambda_handler(lorawan_webhook_example, {})
         self.assertEqual(res['body'], (
-            '{"message": "Record could not be added to AGO. See Cloudwatch '
+            '{"message":"Record could not be added to AGO. See Cloudwatch '
             'log for details."}'))
         self.assertEqual(res['statusCode'], 422)
 
@@ -71,5 +71,5 @@ class TestHandler(TestCase):
         body_dic['uplink_message']['frm_payload'] = ''
         modified_example['body'] = json.dumps(body_dic)
         res = app.lambda_handler(modified_example, {})
-        self.assertEqual(res['body'], '{"message": "invalid GPS fix"}')
+        self.assertEqual(res['body'], '{"message":"invalid GPS fix"}')
         self.assertEqual(res['statusCode'], 200)
