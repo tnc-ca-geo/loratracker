@@ -25,11 +25,11 @@ class TestExtract(TestCase):
                 'rec_tm_utc': '2021-08-25 19:22:58',
                 'pl_tm_utc': '2021-08-25 19:23:00',
                 'tr_tm_utc': '2021-08-25 19:23:00',
+                'tr_tm_src': 'gps',
                 'tm_valid': True,
                 'buffered': False,
                 'app': 'test-n-ranging',
                 'dev': 'feather-ranger-f3c3',
-                'snr': 10,
                 'f_port': 1,
                 'gateway_1': 'foo',
                 'snr_1': 10,
@@ -47,6 +47,8 @@ class TestExtract(TestCase):
                 'label': 'The NO device',
                 'domain': 'falk'}}
         res = extract.extract_feature(lorawan_webhook_example)
+        # for item in expected['attributes']:
+        #    print(item, res['attributes'][item], expected['attributes'][item])
         self.assertDictEqual(res, expected)
 
     def test_wo_payload_decoder(self):
@@ -69,11 +71,11 @@ class TestExtract(TestCase):
                 'rec_tm_utc': '2021-08-25 19:22:58',
                 'pl_tm_utc': None,
                 'tr_tm_utc': '2021-08-25 19:22:58',
+                'tr_tm_src': 'network',
                 'tm_valid': True,
                 'buffered': False,
                 'app': 'fooapp',
                 'dev': 'foodev',
-                'snr': 10,
                 'f_port': 1,
                 'gateway_1': 'foo',
                 'snr_1': 10,
@@ -109,11 +111,11 @@ class TestExtract(TestCase):
                 'rec_tm_utc': '2021-08-25 19:22:58',
                 'pl_tm_utc': '2021-08-25 19:22:00',
                 'tr_tm_utc': '2021-08-25 19:22:00',
+                'tr_tm_src': 'gps',
                 'tm_valid': True,
                 'buffered': False,
                 'app': 'fooapp',
                 'dev': 'foodev',
-                'snr': 10,
                 'f_port': 1,
                 'gateway_1': 'foo',
                 'snr_1': 10,
@@ -141,13 +143,13 @@ class TestExtract(TestCase):
         end_device_ids['device_id'] = 'foodev'
         body['uplink_message']['decoded_payload'] = {'a': 1, 'b': 2, 'c': 3}
         lorawan_webhook_example_modified['body'] = json.dumps(body)
-        self.assertEqual(
+        self.assertDictEqual(
             extract.extract_feature(lorawan_webhook_example_modified), {})
 
     def test_invalid_json(self):
         modified_example = deepcopy(lorawan_webhook_example)
         modified_example['body'] = 'not valid'
-        self.assertEqual(
+        self.assertDictEqual(
             extract.extract_feature(modified_example), {})
 
 

@@ -49,15 +49,12 @@ def get_time(utc_tm_st_dt, frmt=settings.TIME_FORMAT, zone=settings.UTC_ZONE):
     Returns:
         datetime
     """
-    formats = ['%Y-%m-%dT%H:%M:%S', frmt]
     assert zone
-    try:
-        utc_tm_st_dt.strftime(settings.TIME_FORMAT)
+    # test whether we already have the right time format
+    if isinstance(utc_tm_st_dt, datetime):
         return utc_tm_st_dt.replace(tzinfo=zone)
-    except AttributeError:
-        pass
-    for item in formats:
-        # test whether we already have the right time format
+    # check whether we can convert using a particular format
+    for item in ['%Y-%m-%dT%H:%M:%S', frmt]:
         try:
             utc_tm_st_dt = utc_tm_st_dt.split('.')[0]
             naive_utc = datetime.strptime(utc_tm_st_dt, item)
@@ -138,8 +135,13 @@ def extract_feature(event):
         'rec_tm_utc': rec_tm_str,
         'pl_tm_utc': pl_tm_str,
         'tr_tm_utc': pl_tm_str if pl_tm_str else rec_tm_str,
-        'tm_valid': True,
-        'buffered': rec_tm - pl_tm > timedelta(minutes=2) if pl_tm else False,
+        'tm_valid': 1,
+        # we consider data buffered if it arrives more than one minutes after
+        # measuring
+        'buffered': rec_tm - pl_tm > timedelta(minutes=1) if pl_tm else False,
+        # indicate whether we determine time from gps or network
+        # TODP: 'rtc' might be a third possibility we did not come accross yet
+        'tr_tm_src': 'gps' if pl_tm else 'network',
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': device,
@@ -158,7 +160,7 @@ def extract_feature(event):
     attributes['gtw_count'] = len(gateways)
     # this is currently here for backward compatibility
     # TODO: remove after data migration
-    attributes['snr'] = gateways[0][1]
+    # attributes['snr'] = gateways[0][1]
     for idx in range(0, attributes['gtw_count']):
         index = str(idx+1)
         try:

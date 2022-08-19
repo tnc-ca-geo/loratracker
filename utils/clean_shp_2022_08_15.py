@@ -23,6 +23,7 @@ BASE_PATH = os.path.abspath(os.path.join('..', '..', 'data'))
 DATA = os.path.join(BASE_PATH, 'lora_tracking_2a', 'lora_tracking_2.shp')
 NEW = os.path.join(BASE_PATH, 'lora_tracking_3')
 
+
 DISCARD_LIST = [
     'd3ab8843-e530-4ce8-bc0e-a3bbffe037e6',
     'aac015bd-fd36-491d-b84e-ad091eff73b4']
@@ -147,7 +148,7 @@ def determine_time(properties):
 
 
 def clean(feature):
-    properties = RECORD_TEMPLATE
+    properties = deepcopy(RECORD_TEMPLATE)
     # copy old data
     for item in properties:
         properties[item] = feature.get('properties', {}).get(item)
@@ -155,14 +156,20 @@ def clean(feature):
     device = properties.get('dev', '')
     properties['label'] = lookups.DEVICE_LABELS.get(device) or device
     properties['domain'] = lookups.DOMAINS.get(device, '')
+    # copy from original since those field are not in the template
+    feature_properties = feature.get('properties', {})
+    properties['snr_1'] = feature_properties.get('snr')
+    properties['tm_old'] = feature_properties.get('time')
+    properties['rec_tm_old'] = feature_properties.get('received_t')
+    properties['f_port'] = feature_properties.get('frames')
     for item in ('1', '2', '3', '4', '5'):
         gateway = properties.get('gateway_' + item)
         properties['gw_label_' + item] = lookups.GATEWAY_LABELS.get(
             gateway) or gateway
     # deal with date and time
-    time_dic = determine_time(properties)
-    properties['f_port'] = feature.get('frames')
+    time_dic = determine_time(feature_properties)
     properties.update(time_dic)
+    properties['tr_tm_src'] = 'gps' if properties['pl_tm_utc'] else 'network'
     return {'geometry': feature.get('geometry'), 'properties': properties}
 
 
@@ -213,12 +220,14 @@ def main():
             ('rec_tm_utc', 'str:20'),
             ('pl_tm_utc', 'str:20'),
             ('tr_tm_utc', 'str:20'),
+            ('tr_tm_src', 'str:10'),
             ('f_port', 'int'),
             ('buffered', 'int'),
             ('tm_valid', 'int')
         ] + list(old_properties.items()) + new_gw_info + [
-        # move these legacy fields to the end for future removal
-            ('snr', 'str:10'), ('time', 'str:20'), ('received_t', 'str:20')]
+            # move these legacy fields to the end, just to have a record for
+            # our time manipulation
+            ('tm_old', 'str:20'), ('rec_tm_old', 'str:20')]
         new_properties = OrderedDict([item for item in properties_list])
         schema['properties'] = new_properties
         metadata = {
