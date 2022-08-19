@@ -135,13 +135,13 @@ def extract_feature(event):
         'rec_tm_utc': rec_tm_str,
         'pl_tm_utc': pl_tm_str,
         'tr_tm_utc': pl_tm_str if pl_tm_str else rec_tm_str,
+        'tr_tm_src': 'gps' if pl_tm_str else 'network',
         'tm_valid': 1,
         # we consider data buffered if it arrives more than one minutes after
         # measuring
-        'buffered': rec_tm - pl_tm > timedelta(minutes=1) if pl_tm else False,
+        'buffered': rec_tm - pl_tm > timedelta(minutes=2) if pl_tm_str else False,
         # indicate whether we determine time from gps or network
         # TODP: 'rtc' might be a third possibility we did not come accross yet
-        'tr_tm_src': 'gps' if pl_tm else 'network',
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': device,
