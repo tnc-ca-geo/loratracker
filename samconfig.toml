@@ -10,3 +10,16 @@ confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 parameter_overrides = "StageName=\"dev\" AgoClientSecret=\"0cf34ae30ae94554a097c2f469cdb425\""
 image_repositories = []
+
+[lora-tracker]
+[lora-tracker.deploy]
+[lora-tracker.deploy.parameters]
+stack_name = "lora-tracker"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-f5q726qb9mh"
+s3_prefix = "lora-tracker"
+region = "us-west-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "StageName=\"dev\" AgoClientSecret=\"0cf34ae30ae94554a097c2f469cdb425\""
+image_repositories = []

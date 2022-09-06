@@ -1,3 +1,6 @@
+"""
+Analyze time distribution in new shapefile
+"""
 from datetime import datetime, timedelta
 from dateutil import tz
 import os

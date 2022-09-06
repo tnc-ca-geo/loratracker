@@ -40,6 +40,17 @@ Resources:
       Tags:
         stack: !Ref AWS::StackName
 
+  SharedLayer:
+     Type: AWS::Serverless::LayerVersion
+     Properties:
+       LayerName: !Ref AWS::StackName
+       ContentUri: layers/shared
+       CompatibleRuntimes:
+         - python3.9
+     Metadata:
+       BuildMethod: python3.9
+     RetentionPolicy: Delete
+
   WebhookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -49,6 +60,8 @@ Resources:
         Variables:
           AGO_CLIENT_SECRET: !Ref AgoClientSecret
       Handler: app.lambda_handler
+      Layers:
+        - !Ref SharedLayer
       Runtime: python3.9
       Events:
         NewData:

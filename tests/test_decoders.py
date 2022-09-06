@@ -2,9 +2,8 @@ from datetime import datetime
 import os
 import sys
 from unittest import TestCase
-sys.path.insert(
-    0, os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'webhook')))
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(root, 'webhook'))
 from webhook.src import decoders
 
 

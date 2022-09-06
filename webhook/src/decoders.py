@@ -22,7 +22,6 @@ def adeunis(payload, port=0):
         lonDeg = (
             ((bytes[5] & 0xf0) >> 4) * 100 + (bytes[5] & 0xf) * 10 +
             ((bytes[6] & 0xf0) >> 4))
-        # print('DEBUG', lonDeg)
         lonMin = (
             (bytes[6] & 0xf) * 10 + ((bytes[7] & 0xf0) >> 4) +
             (bytes[7] & 0xf) * .1 + ((bytes[8] & 0xf0) >> 4) * .01)/60

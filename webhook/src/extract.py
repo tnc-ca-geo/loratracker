@@ -2,7 +2,7 @@
 Extract data from request context
 """
 # standard library
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import re
 import time
@@ -10,80 +10,21 @@ import time
 from dateutil import tz
 # project
 from src import decoders
-
-# doing this only california for now, make sure that the same entries exist
-# in the Lambda environment
-from_tz = tz.gettz('UTC')
-to_tz = tz.gettz('America/Los_Angeles')
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+import lookups
+import settings
 
 
 # check whether a device specific decoder exist
 DEVICE_MATRIX = {
-    'feather-ranger-f3c3': decoders.feather_ranger_f3c3
-}
+    'feather-ranger-f3c3': decoders.feather_ranger_f3c3}
+
 
 # check whether an application_specific_decoder exist
 APPLICATION_MATRIX = {
     'test-n-ranging': decoders.oyster,
     'adeunis-tester': decoders.adeunis,
     'miromico-cargo': decoders.miromico_cargo,
-    'miromico-asset-test': decoders.miromico_cargo
-}
-
-# device labels`
-LABEL_LOOKUP = {
-    'adeunis-ftd-23754': 'Mark Goering tester',
-    'feather-ranger-f3c3': 'The NO device',
-    'miromico-007a4f': 'JLDP test device (lost)',
-    'miromico-007a2f': 'JLDP #4 flatbed',
-    'miromico-007a2e': 'JLDP #7 Silverado',
-    'miromico-007a2d': 'JLDP #10 flatbed',
-    'miromico-007a2c': 'JLDP blue UTV',
-    'miromico-007a29': 'JLDP #2 Colorado',
-    'miromico-007a26': 'JLDP #5 flatbed',
-    'miromico-007a30': 'JLDP green UTV',
-    'miromico-007a25': 'JLDP black utv',
-    'oyster-005d93': 'SCI Blue 4runner',
-    'jldp-oyster-c7a8': 'JLDP Green Honda OHV',
-    'jldp-oyster-c7a0': 'JLDP Blue Kawasaki OHV',
-    'tnc-adeunis-ftd-0235a1': 'JLDP Kelly signal tester',
-}
-
-# domains
-DOMAIN_LOOKUP = {
-    'adeunis-ftd-23754': 'wa',
-    'miromico-007a4f': 'jldp',
-    'miromico-007a2f': 'jldp',
-    'miromico-007a2e': 'jldp',
-    'miromico-007a2d': 'jldp',
-    'miromico-007a2c': 'jldp',
-    'miromico-007a2b': 'sci',
-    'miromico-007a2a': 'sci',
-    'miromico-007a29': 'jldp',
-    'miromico-007a26': 'jldp',
-    'miromico-007a30': 'jldp',
-    'miromico-007a25': 'jldp',
-    '9876b6115b69': 'staten',
-    'raspverry_pi_ranger': 'falk',
-    '3939353476387418': 'falk',
-    'feather_ranger': 'falk',
-    'feather_ranger_2': 'falk',
-    'feather-ranger-f3c3': 'falk',
-    'oyster-005d93': 'sci',
-    'jldp-oyster-c7a8': 'jldp',
-    'jldp-oyster-c7a0': 'jldp',
-    'tnc-mmico-cargo-007a4f': 'jldp',
-    'tnc-mmico-tracker2-007a4e': 'jldp',
-    'tnc-adeunis-ftd-0235a1': 'jldp'
-}
-
-
-def empty_decoder(payload):
-    """
-    Use this if not decocer found
-    """
-    return {}
+    'miromico-asset-test': decoders.miromico_cargo}
 
 
 def gps_validate(transformed_message):
@@ -97,23 +38,30 @@ def gps_validate(transformed_message):
     return True
 
 
-def transform_time(utc_time, frmt='%Y-%m-%dT%H:%M:%S'):
+def get_time(utc_tm_st_dt, frmt=settings.TIME_FORMAT, zone=settings.UTC_ZONE):
     """
-    transform utc time into local time
+    CLean up time. We don't convert to local time anymore.
+
+    Args:
+        utc_tm_st_or_dt(str): Time string as received from the server.
+            Clean millis
+        utc_tm_st_or_dt(datetime): Alternatively we can accept a datetime object
+    Returns:
+        datetime
     """
-    # cutting time string here since strptime does not supports 9 decimal
-    # points in seconds, not pretty but quick work around
-    # get rid of decimal points, todo: make this more elegant
-    # print('FROM_TZ', from_tz)
-    # print('TO_TZ', to_tz)
-    # make sure timezones are created (will return None if incorrect tz
-    # string provided)
-    assert from_tz
-    assert to_tz
-    utc_time = utc_time.split('.')[0]
-    naive_utc = datetime.strptime(utc_time, frmt)
-    utc = naive_utc.replace(tzinfo=from_tz)
-    return utc.astimezone(to_tz).strftime('%Y-%m-%d %H:%M:%S')
+    assert zone
+    # test whether we already have the right time format
+    if isinstance(utc_tm_st_dt, datetime):
+        return utc_tm_st_dt.replace(tzinfo=zone)
+    # check whether we can convert using a particular format
+    for item in ['%Y-%m-%dT%H:%M:%S', frmt]:
+        try:
+            utc_tm_st_dt = utc_tm_st_dt.split('.')[0]
+            naive_utc = datetime.strptime(utc_tm_st_dt, item)
+        except (ValueError, AttributeError):
+            continue
+        else:
+            return naive_utc.replace(tzinfo=zone)
 
 
 def get_gateways(dic):
@@ -153,47 +101,74 @@ def extract_feature(event):
         'end_device_ids', {}).get('application_ids', {}).get('application_id')
     device = dic.get('end_device_ids', {}).get('device_id')
     decoder_function = DEVICE_MATRIX.get(
-        device) or APPLICATION_MATRIX.get(application) or empty_decoder
+        device) or APPLICATION_MATRIX.get(application)
+    # use the network decoder if this stack does not provide a decoder function
+    # it needs at least 'x' and 'y' fields, 'time' is optionial
+    if not decoder_function:
+        decoded = uplink_message.get('decoded_payload')
+    else:
+        try:
+            decoded = decoder_function(
+                uplink_message.get('frm_payload'),
+                uplink_message.get('f_port', 0))
+        except (ValueError, IndexError):
+            return {}
+        if decoded.get('status') != 'ok':
+            return {}
+    lora_settings = uplink_message.pop('settings', {})
+    label = lookups.DEVICE_LABELS.get(device) or device
     try:
-        decoded = decoder_function(
-            uplink_message.get('frm_payload'), uplink_message.get('f_port', 0))
-    except (ValueError, IndexError):
+        geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
+            'spatialReference': {'wkid': 4326}}
+    except KeyError:
         return {}
-    if decoded.get('status') != 'ok':
-        return {}
-    settings = uplink_message.pop('settings', {})
-    label = LABEL_LOOKUP.get(device) or device
-    geometry = {'x': decoded.pop('x'), 'y': decoded.pop('y'),
-        'spatialReference': {'wkid': 4326}}
-    tme = decoded.get('time')
-    time_str = datetime.strftime(
-        decoded.get('time'), '%Y-%m-%d %H:%M:%S') if tme else ''
+    lora = lora_settings.get('data_rate', {}).get('lora', {})
+    rec_tm = get_time(uplink_message.get('received_at'))
+    # this is currently pretty naive and has to be handled by decoder
+    rec_tm_str = rec_tm.strftime(settings.TIME_FORMAT)
+    pl_tm = get_time(decoded.get('time'))
+    try:
+        pl_tm_str = pl_tm.strftime(settings.TIME_FORMAT)
+    except AttributeError:
+        pl_tm_str = None
     attributes = {
-        'received_t': transform_time(uplink_message.get('received_at')),
-        'time': time_str,
+        'rec_tm_utc': rec_tm_str,
+        'pl_tm_utc': pl_tm_str,
+        'tr_tm_utc': pl_tm_str if pl_tm_str else rec_tm_str,
+        'tr_tm_src': 'gps' if pl_tm_str else 'network',
+        'tm_valid': 1,
+        # we consider data buffered if it arrives more than one minutes after
+        # measuring
+        'buffered': rec_tm - pl_tm > timedelta(minutes=2) if pl_tm_str else False,
+        # indicate whether we determine time from gps or network
+        # TODP: 'rtc' might be a third possibility we did not come accross yet
         'app':  dic.get('end_device_ids', {}).get('application_ids', {}).get(
             'application_id'),
         'dev': device,
-        'frames': uplink_message.get('f_port', 0),
-        'dr': settings.get('data_rate_index'),
-        'cr': settings.get('coding_rate'),
-        'f_mhz' : int(settings.get('frequency', '0'))/1E+6,
+        'f_port': uplink_message.get('f_port', 0),
+        'dr': (
+            str(lora.get('bandwidth', '')) + '/' +
+            str(lora.get('spreading_factor', ''))),
+        'cr': lora_settings.get('coding_rate'),
+        'f_mhz' : int(lora_settings.get('frequency', '0'))/1E+6,
         'airtime_ms': int(float(
             re.sub(r'[^0-9.]', '',
             uplink_message.get('consumed_airtime', '0'))) * 1E+3),
-        'domain': DOMAIN_LOOKUP.get(device),
+        'domain': lookups.DOMAINS.get(device),
         'label': label}
     gateways = get_gateways(uplink_message)
     attributes['gtw_count'] = len(gateways)
     # this is currently here for backward compatibility
     # TODO: remove after data migration
-    attributes['snr'] = gateways[0][1]
+    # attributes['snr'] = gateways[0][1]
     for idx in range(0, attributes['gtw_count']):
         index = str(idx+1)
         try:
             attributes['gateway_' + index] = gateways[idx][0]
             attributes['snr_' + index] = gateways[idx][1]
             attributes['rssi_' + index] = gateways[idx][2]
+            attributes['gw_label_' + index] = lookups.GATEWAY_LABELS.get(
+                gateways[idx][0])
         except IndexError:
             print('GATEWAY EXTRACT FAILED')
     return {'geometry': geometry, 'attributes': attributes}
