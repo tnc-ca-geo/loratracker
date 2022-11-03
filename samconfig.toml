@@ -21,5 +21,5 @@ region = "us-west-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "StageName=\"prod\" AgoClientSecret=\"0cf34ae30ae94554a097c2f469cdb425\""
+parameter_overrides = "StageName=\"prod\" AgoClientSecret=\"7d4c3e6312324d3292f7aad6c00abfad\""
 image_repositories = []

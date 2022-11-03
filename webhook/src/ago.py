@@ -12,7 +12,7 @@ import requests
 import lookups
 
 
-CLIENT_ID = os.environ.get('AGO_CLIENT_ID', 'dN9MvQLsOn6w1Set')
+CLIENT_ID = os.environ.get('AGO_CLIENT_ID', '47nReN9oMP8eiSui')
 CLIENT_SECRET = os.environ.get('AGO_CLIENT_SECRET')
 TOKEN_URL = 'https://www.arcgis.com/sharing/rest/oauth2/token/'
 AGO_INSTANCE_URL = 'https://services.arcgis.com/F7DSX1DSNSiWmOqh/'

@@ -54,19 +54,21 @@ def lambda_handler(event, context):
         API Gateway Lambda Proxy Output Format: dict
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
+    print('EVENT', event)
     feature = extract.extract_feature(event)
+    print('FEATURE', feature)
     if feature:
         service = ago.FeatureService()
         response = service.post_records([feature])
         _, parsed = parse_ago_response(response)
         success = parse_success(parsed)
         if success:
+            print('SUCCESS', success)
             return {'statusCode': 201, 'body':
                 json.dumps(
                     {'message': 'ok', 'items': success}, separators=(',', ':'))}
         else:
             # output to Cloudwatch for debugging
-            print('INVALID RECORD ', feature)
             print('AGO ERROR RESPONSE: ', response.content)
             return {'statusCode': 422, 'body': json.dumps({
                 'message': 'Record could not be added to AGO. '
