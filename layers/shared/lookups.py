@@ -36,13 +36,14 @@ GATEWAY_LABELS = {
     'lorix-one-20d3a6': 'JLDP LorixOne Relay Ridge',
     'lorix-one-207d24': 'SCI LorixOne Valley Peak',
     'lorix-one-20bb57': 'JLDP Bunker Hill',
-    'lorix-one-2ddd4e': 'JLDP LorixOne unplaced',
-    'lorix-one-2ef2c4': 'JLDP LorixOne Kelly home',
-    'lorix-one-2e1135': 'JLDP LorixOne unplaced',
-    'lorix-one-2eb3b1': 'SCI LorixOne Diablo 2',
-    'lorix-one-2e901c': 'JLDP LorixOne unplaced',
+    'lorix-one-2ddd4e': 'SCI-LorixOne-Christy-Ranch',
     'lorix-one-2de697': 'Maui LorixOne Waikamoi',
+    'lorix-one-2e1135': 'JLDP-LorixOne-1135-M3',
+    'lorix-one-2e361b': 'Nachusa Grasslands LorixOne',
     'lorix-one-2e89bd': 'JLDP LorixOne Cojo Water tanks',
+    'lorix-one-2e901c': 'JLDP LorixOne unplaced',
+    'lorix-one-2eb3b1': 'SCI LorixOne Diablo 2',
+    'lorix-one-2ef2c4': 'JLDP LorixOne Kelly home',
     'eui-58a0cbfffe801686': 'TTN indoor starter'}
 
 # domain lookup
