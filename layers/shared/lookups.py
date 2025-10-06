@@ -16,10 +16,15 @@ DEVICE_LABELS = {
     'miromico-007a26': 'JLDP #5 flatbed',
     'miromico-007a30': 'JLDP green UTV',
     'miromico-007a25': 'JLDP black utv',
+    'miromico-00ab34': 'JLDP Rivan',
     'oyster-005d93': 'SCI Blue 4runner',
     'jldp-oyster-c7a8': 'JLDP Green Honda OHV',
     'jldp-oyster-c7a0': 'JLDP Blue Kawasaki OHV',
-    'tnc-adeunis-ftd-0235a1': 'JLDP Kelly signal tester'}
+    'tnc-adeunis-ftd-0235a1': 'JLDP Kelly signal tester',
+    'oyster3-709': 'JLDP Polaris Electric',
+    'oyster3-65d': 'JLDP Blue Kawasaki Mule UTV',
+    'oyster3-7ba': 'JLDP Green Kawasaki Mule UTV'
+}
 
 GATEWAY_LABELS = {
     'dragino-dlos8-28260': 'TIS Dragino Mark home',
@@ -44,7 +49,10 @@ GATEWAY_LABELS = {
     'lorix-one-2e901c': 'JLDP LorixOne unplaced',
     'lorix-one-2eb3b1': 'SCI LorixOne Diablo 2',
     'lorix-one-2ef2c4': 'JLDP LorixOne Kelly home',
-    'eui-58a0cbfffe801686': 'TTN indoor starter'}
+    'eui-58a0cbfffe801686': 'TTN indoor starter',
+    'wifx-l1-10484': 'JLDP WifxL1 Bunker',
+    'wifx-l1-0d5fa': 'JLDP WifxL1 Relay',
+    'wifx-l1-10982': 'JLDP WifxL1 Sutter Peak'}
 
 # domain lookup
 DOMAINS = {
@@ -60,6 +68,7 @@ DOMAINS = {
     'miromico-007a26': 'jldp',
     'miromico-007a30': 'jldp',
     'miromico-007a25': 'jldp',
+    'miromico-00ab34': 'jldp',
     '9876b6115b69': 'staten',
     'raspverry_pi_ranger': 'falk',
     '3939353476387418': 'falk',
@@ -71,5 +80,8 @@ DOMAINS = {
     'jldp-oyster-c7a0': 'jldp',
     'tnc-mmico-cargo-007a4f': 'jldp',
     'tnc-mmico-tracker2-007a4e': 'jldp',
-    'tnc-adeunis-ftd-0235a1': 'jldp'
+    'tnc-adeunis-ftd-0235a1': 'jldp',
+    'oyster3-709': 'jldp',
+    'oyster3-65d': 'jldp',
+    'oyster3-7ba': 'jldp'
 }
