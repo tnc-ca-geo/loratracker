@@ -32,6 +32,7 @@ GATEWAY_LABELS = {
     'laird-rg191-296af5': 'Falk Laird home',
     'laird-rg1xx-293ebd': 'SCI Laird Diablo',
     'laird-rg1xx-294d3c': 'SCI Laird Main Ranch',
+    'laird-rg1xx-c77255': 'SCI Laird Main Ranch (replacement)',
     'laird-rg1xx-294f2e': 'Staten Laird Office',
     'laird_rg191_outdoor_staten': 'Staten Laird Office',
     'lorix-one-0a8a23': 'TIS LorixOne Spare',
