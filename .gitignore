@@ -248,3 +248,4 @@ set_local_vars.sh
 credstash.log
 *.orig
 .aws-sam
+samconfig.toml

@@ -51,6 +51,15 @@ Resources:
        BuildMethod: python3.9
      RetentionPolicy: Delete
 
+  WebhookFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupClass: STANDARD
+      LogGroupName: !Sub "/${AWS::StackName}/lambda/WebhookFunction"
+      RetentionInDays: 1
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+
   WebhookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -59,6 +68,9 @@ Resources:
       Environment:
         Variables:
           AGO_CLIENT_SECRET: !Ref AgoClientSecret
+      LoggingConfig:
+        LogGroup: !Ref WebhookFunctionLogGroup
+
       Handler: app.lambda_handler
       Layers:
         - !Ref SharedLayer
