@@ -10,7 +10,7 @@ import sys
 from dateutil import tz
 import fiona
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(root, 'layers', 'shared'))
+sys.path.append(os.path.join(root, 'layers'))
 import lookups
 from schema import RECORD_TEMPLATE
 from settings import UTC_ZONE, TIME_FORMAT

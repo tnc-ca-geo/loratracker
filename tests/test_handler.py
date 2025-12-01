@@ -1,3 +1,4 @@
+# pylint:disable=C0114,C0115,C0116,C0413
 # standard library
 from copy import deepcopy
 import json
@@ -12,7 +13,7 @@ from tests.example_data import lorawan_webhook_example
 # necessary in order not to put the test code on AWS LAMBDA
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(root, 'webhook'))
-sys.path.append(os.path.join(root, 'layers', 'shared'))
+sys.path.append(os.path.join(root, 'layers'))
 from webhook import app
 
 

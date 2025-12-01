@@ -1,11 +1,12 @@
+# pylint:disable=C0114,C0115,C0116,E0401,C0413
 # standard library
 from copy import deepcopy
 from datetime import datetime
-from dateutil import tz
 import json
 import os
 from unittest import TestCase
 import sys
+from dateutil import tz
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(root, 'webhook'))
 sys.path.append(os.path.join(root, 'layers', 'shared'))

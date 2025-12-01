@@ -8,6 +8,7 @@ Description: >
 Globals:
   Function:
     Timeout: 3
+    Runtime: python3.12
 
 Parameters:
   StageName:
@@ -61,31 +62,23 @@ Resources:
         Comment: Loratracking web app
         Origins:
           - DomainName: loratracker-prod.s3.us-west-1.amazonaws.com
-            Id: !Sub "loratracker-?{StageName}"
+            Id: !Sub "loratracker-${StageName}"
             OriginPath: /dist
             S3OriginConfig:
               OriginAccessIdentity: ""
             OriginAccessControlId: !GetAtt WebAppCloudfrontDistroOriginAccessControl.Id
         Aliases:
-        # if we every have a dev instance we have to adjust and make it dependent
-        # on deployment stage
           - lora-tracker.codefornature.org
         ViewerCertificate:
-          AcmCertificateArn: arn:aws:acm:us-east-1:957976798967:certificate/25376cbd-3ff7-4a94-8e53-d8b07ec9b8af
+          AcmCertificateArn: arn:aws:acm:us-east-1:957976798967:certificate/c44b3d3e-6b16-40dc-9870-b4ab046ac828
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
         DefaultCacheBehavior:
-          # CachePolicyId:
           Compress: true
-          # DefaultTTL: 86400
-          # FieldLevelEncryptionId:
+          DefaultTTL: 86400
           MaxTTL: 31536000
           MinTTL: 0
-          # OriginRequestPolicyId:
-          # RealtimeLogConfigArn:
-          # ResponseHeadersPolicyId:
-          # SmoothStreaming: false
-          TargetOriginId: !Sub "loratracker-?{StageName}"
+          TargetOriginId: !Sub "loratracker-${StageName}"
           ViewerProtocolPolicy: redirect-to-https
           ForwardedValues:
             QueryString: "false"
@@ -95,7 +88,6 @@ Resources:
         Enabled: true
         HttpVersion: http1.1
         PriceClass: PriceClass_All
-        # WebACLId:
 
   IoTAPI:
     Type: AWS::Serverless::Api
@@ -122,7 +114,7 @@ Resources:
      Type: AWS::Serverless::LayerVersion
      Properties:
        LayerName: !Ref AWS::StackName
-       ContentUri: layers/shared
+       ContentUri: layers
        CompatibleRuntimes:
          - python3.12
      Metadata:
@@ -152,7 +144,6 @@ Resources:
       Handler: app.lambda_handler
       Layers:
         - !Ref SharedLayer
-      Runtime: python3.9
       Events:
         NewData:
           Type: Api

@@ -1,3 +1,4 @@
+# pylint:disable=C0114,C0115,C0116
 from unittest import TestCase
 from utils.clean_shp_2022_08_15 import determine_time
 

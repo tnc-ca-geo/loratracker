@@ -1,9 +1,12 @@
+# pylint:disable=E0401
 """
 Analyze time distribution in new shapefile
 """
-from datetime import datetime, timedelta
-from dateutil import tz
+# standard library
+from datetime import datetime
 import os
+# third party
+from dateutil import tz
 import fiona
 
 
@@ -15,6 +18,9 @@ TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 def main():
+    """
+    The main function.
+    """
     distribution = {}
     with fiona.open(NEW) as features:
         for feature in features:

@@ -1,3 +1,4 @@
+# pylint:disable=C0114,C0115,C0116,C0413
 from datetime import datetime
 import os
 import sys
@@ -7,7 +8,6 @@ sys.path.append(os.path.join(root, 'webhook'))
 from webhook.src import decoders
 
 
-# TODO: add tests and handling for decoder errors
 class TestDecoders(TestCase):
 
     def test_adeunis(self):
