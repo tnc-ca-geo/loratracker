@@ -1,3 +1,7 @@
+"""
+AGO fields
+"""
+
 RECORD_TEMPLATE = {
     'rec_tm_utc': None,
     'pl_tm_utc': None,

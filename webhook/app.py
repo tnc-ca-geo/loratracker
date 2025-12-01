@@ -1,11 +1,33 @@
+# pylint:disable=E0401
+"""
+Webhook for receiving location messages and displaying it on the map. Supports
+Miromico and Oyster trackers plus a few custom formats.
+"""
 # standard library
 import json
+from typing import Union
 # project
-import src.extract as extract
-import src.ago as ago
+from src import extract
+from src import ago
 
 
-def parse_ago_response(response):
+def http_response(code:int, response:dict) -> dict:
+    """
+    Shorthand for API gateway http response dict.
+
+    Args:
+        code(int): Response code
+        response(dict): Response body dict that will converted to json
+    Returns:
+        dict
+    """
+    return {
+        'statusCode': code,
+        'body': json.dumps(response, separators=[',', ':'])
+    }
+
+
+def parse_ago_response(response:bytes) -> Union[tuple[int, dict], None]:
     """
     Convert a AGO response in a tuple of status_code and json-parsed response.
 
@@ -21,7 +43,7 @@ def parse_ago_response(response):
     return response.status_code, jsn
 
 
-def parse_success(dic):
+def parse_success(dic:dict) -> list[int]:
     """
     Parse AGO response for success. Returns list of items created in AGO.
 
@@ -38,23 +60,16 @@ def parse_success(dic):
     return res
 
 
-
-def lambda_handler(event, context):
+def lambda_handler(event:dict, _) -> dict:
     """
     Lambda function parsing location message from tracker
 
     Args:
         event: dict, required
             API Gateway Lambda Proxy Input Format
-            Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-        context: object, required
-            Lambda Context runtime methods and attributes
-            Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
     Returns:
         API Gateway Lambda Proxy Output Format: dict
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
-    print('EVENT', event)
     feature = extract.extract_feature(event)
     print('FEATURE', feature)
     if feature:
@@ -64,16 +79,11 @@ def lambda_handler(event, context):
         success = parse_success(parsed)
         if success:
             print('SUCCESS', success)
-            return {'statusCode': 201, 'body':
-                json.dumps(
-                    {'message': 'ok', 'items': success}, separators=(',', ':'))}
-        else:
-            # output to Cloudwatch for debugging
-            print('AGO ERROR RESPONSE: ', response.content)
-            return {'statusCode': 422, 'body': json.dumps({
-                'message': 'Record could not be added to AGO. '
-                'See Cloudwatch log for details.'}, separators=(',', ':'))}
+            return http_response(201, {'message': 'ok', 'items': success})
+        # output to Cloudwatch for debugging
+        print('AGO ERROR RESPONSE: ', response.content)
+        return http_response(422, {
+            'message': 'Record could not be added to AGO. '
+            'See Cloudwatch log for details.'})
     # Respond with 200 so that health check at TTI does not report problems.
-    return {
-        'statusCode': 200, 'body': json.dumps(
-            {'message': 'invalid GPS fix'}, separators=(',', ':'))}
+    return http_response(200, {'message': 'invalid GPS fix'})

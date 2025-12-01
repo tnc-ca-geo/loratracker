@@ -19,6 +19,84 @@ Parameters:
 
 Resources:
 
+  # Bucket for Web app code
+  WebAppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "loratracker-${StageName}"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebAppBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "cloudfront.amazonaws.com"
+            Action: "s3:GetObject"
+            Resource: !Sub "${WebAppBucket.Arn}/*"
+            # Condition:
+            #  StringEquals:
+            #    AWS::SourceArn: !Sub "arn:aws:cloudfront::Id-of-IAM-User:distribution/${CloudFrontDistribution}"
+
+  WebAppCloudfrontDistroOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Description: "OAC for WebAppBucket"
+        Name: static-hosting-OAC
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  WebAppCloudfrontDistro:
+    # see https://canopas.com/deploy-a-website-with-aws-s3-cloudfront-using-cloudformation-c2199dc6c435
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: Loratracking web app
+        Origins:
+          - DomainName: loratracker-prod.s3.us-west-1.amazonaws.com
+            Id: !Sub "loratracker-?{StageName}"
+            OriginPath: /dist
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt WebAppCloudfrontDistroOriginAccessControl.Id
+        Aliases:
+        # if we every have a dev instance we have to adjust and make it dependent
+        # on deployment stage
+          - lora-tracker.codefornature.org
+        ViewerCertificate:
+          AcmCertificateArn: arn:aws:acm:us-east-1:957976798967:certificate/25376cbd-3ff7-4a94-8e53-d8b07ec9b8af
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+        DefaultCacheBehavior:
+          # CachePolicyId:
+          Compress: true
+          # DefaultTTL: 86400
+          # FieldLevelEncryptionId:
+          MaxTTL: 31536000
+          MinTTL: 0
+          # OriginRequestPolicyId:
+          # RealtimeLogConfigArn:
+          # ResponseHeadersPolicyId:
+          # SmoothStreaming: false
+          TargetOriginId: !Sub "loratracker-?{StageName}"
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: "false"
+            Cookies:
+              Forward: none
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http1.1
+        PriceClass: PriceClass_All
+        # WebACLId:
+
   IoTAPI:
     Type: AWS::Serverless::Api
     Properties:
@@ -46,9 +124,9 @@ Resources:
        LayerName: !Ref AWS::StackName
        ContentUri: layers/shared
        CompatibleRuntimes:
-         - python3.9
+         - python3.12
      Metadata:
-       BuildMethod: python3.9
+       BuildMethod: python3.12
      RetentionPolicy: Delete
 
   WebhookFunctionLogGroup:
